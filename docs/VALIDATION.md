@@ -52,7 +52,7 @@
 
 另用自建 APFS、ExFAT 测试卷分别执行20项发布矩阵：每卷19项通过、1项因卷特性不适用跳过；两卷合计覆盖正常保存、排他命名、文件/目录/符号链接保护、12路并发、写入/同步失败、目标替换、取消提交边界、跨卷拒绝及FAT文件名。测试卷及镜像已清理，未触及用户音频或账号。历史恢复新增8项回归，覆盖空/重复ID、旧格式迁移、损坏/未来版本备份、上限、备份失败和私有原子保存。
 
-上述历史检查是本机结果；公开源码的远端结果以 [GitHub Actions](https://github.com/ixiehao/chengwen/actions) 中对应提交为准。源码预览不包含 macOS 12.7.6、实体 Intel Mac 或真实会员账号的实测验收。
+上述历史检查是本机结果。远端验证见对应提交的 GitHub Actions 记录。macOS 12.7.6、实体 Intel Mac 和真实会员账号的实测验收仍待完成。[GitHub Actions](https://github.com/ixiehao/chengwen/actions)
 
 ## 测试范围
 
