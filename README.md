@@ -12,10 +12,10 @@
 - 查看下载进度和历史记录，重试失败任务或切换音源。
 - 默认免登录。也可在设置中连接网易云音乐或酷我音乐账号，并选择在下载时使用已连接账号。可下载的歌曲以平台提供的权限为准。
 
-## 运行源码预览
+## 安装
 
-澄闻 0.9.5 的最低部署目标为 macOS 12。下载源码 ZIP 并解压，安装 Xcode Command Line Tools，然后在解压后的项目目录运行 `./启动澄闻.command`。发布页提供 SHA-256 校验文件和逐文件清单。[获取源码](https://github.com/ixiehao/chengwen/releases) · [开发指南](docs/DEVELOPMENT.md)
+澄闻 0.9.5 的最低部署目标为 macOS 12。按芯片选择 Apple Silicon 或 Intel 版 DMG，打开后将「澄闻」拖入「应用程序」。预览包采用临时签名，尚未经过 Apple 公证。[下载安装包](https://github.com/ixiehao/chengwen/releases/tag/v0.9.5-preview.1)
 
 下载和音频转换需要安装 FFmpeg 与同目录的 FFprobe。打开澄闻后，在右上角的「运行环境测试」查看安装方法和工具状态。[音频工具安装](docs/AUDIO_TOOLS.md)
 
-澄闻采用 MIT 许可证。[许可证](LICENSE) · [第三方声明](THIRD_PARTY/README.md) · [隐私](PRIVACY.md) · [安全报告](SECURITY.md) · [项目文档](docs/README.md)
+澄闻采用 MIT 许可证。[从源码运行](docs/DEVELOPMENT.md) · [许可证](LICENSE) · [第三方声明](THIRD_PARTY/README.md) · [隐私](PRIVACY.md) · [安全报告](SECURITY.md) · [项目文档](docs/README.md)

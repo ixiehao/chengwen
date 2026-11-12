@@ -1,6 +1,6 @@
 # macOS Monterey 12.7.6
 
-0.9.5 源码预览的最低部署目标为 macOS 12.0。Apple 芯片对应 arm64，Intel 对应 x86_64。
+0.9.5 的最低部署目标为 macOS 12.0。Apple 芯片对应 arm64，Intel 对应 x86_64。
 
 每个安装包检查全部Mach-O的实际架构、系统门槛、签名和复制后启动；DMG的ULMO压缩由macOS10.15开始支持，低于本应用的系统门槛。开发机/Rosetta验证不替代Monterey12.7.6或物理Intel实机验收。
 
