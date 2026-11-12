@@ -1,6 +1,6 @@
 # 开发与验证
 
-本项目为 macOS 12+ 的 Swift Package，界面使用 SwiftUI/AppKit，运行时不需要 Python、Node 或第三方音乐下载引擎。`Package.swift` 的工具版本要求为 Swift 5.7；采用支持该工具版本的 Xcode/Command Line Tools。实际发布应记录所用 Swift/Xcode 版本，最低部署版本不等于构建机系统版本。
+本项目为 macOS 12+ 的 Swift Package，界面使用 SwiftUI 和 AppKit。`Package.swift` 的工具版本要求为 Swift 5.7，请使用支持该版本的 Xcode 或 Command Line Tools。发布时记录构建所用的 Swift 和 Xcode 版本。
 
 ## 准备开发机
 
