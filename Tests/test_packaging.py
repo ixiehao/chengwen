@@ -5,22 +5,53 @@ import zipfile
 
 import pytest
 
-from macos.package_dmg import no_existing, source_files
+from macos.package_dmg import installer_paths, no_existing, source_files
 from macos.native_package_smoke import validate_report
 from macos.verify_app import audit_native_contents
 
 
 def test_packaging_refuses_existing_output_and_broken_symlink(tmp_path):
-    existing = tmp_path / "ChengWen.dmg"
+    existing, missing, report = installer_paths(tmp_path, "0.9.5", "arm64")
+    assert (existing.name, missing.name, report.name) == (
+        "chengwen-0.9.5-arm64.dmg", "chengwen-0.9.5-arm64.dmg.sha256", "chengwen-0.9.5-arm64-verification.json",
+    )
     existing.write_bytes(b"previous installer")
     with pytest.raises(FileExistsError):
         no_existing(existing)
     assert existing.read_bytes() == b"previous installer"
-    missing = tmp_path / "ChengWen.dmg.sha256"
     missing.symlink_to(tmp_path / "not-created")
     with pytest.raises(FileExistsError):
         no_existing(missing)
     assert missing.is_symlink()
+
+
+def test_skip_build_requires_matching_source_and_artifacts(tmp_path, monkeypatch):
+    from macos import package_dmg
+
+    bundle = tmp_path / "ChengWen_ChengWen.bundle"
+    bundle.mkdir()
+    resource = bundle / "Version.json"
+    resource.write_text('{"version": "0.9.5"}')
+    binary = tmp_path / "ChengWen"
+    binary.write_bytes(b"original executable")
+    monkeypatch.setattr(package_dmg, "CACHE", tmp_path)
+    monkeypatch.setattr(package_dmg, "native_binary_directory", lambda architecture: tmp_path)
+    monkeypatch.setattr(package_dmg, "source_digest", lambda: "original source")
+    monkeypatch.setattr(package_dmg, "build_metadata", lambda: {"swift": "Swift", "xcode": "Xcode", "host_macos": "15.0"})
+
+    with pytest.raises(RuntimeError, match="rerun without --skip-build"):
+        package_dmg.verify_build_cache("arm64", "original source", reuse=True)
+    package_dmg.verify_build_cache("arm64", "original source", reuse=False)
+    package_dmg.verify_build_cache("arm64", "original source", reuse=True)
+
+    monkeypatch.setattr(package_dmg, "source_digest", lambda: "edited source")
+    with pytest.raises(RuntimeError, match="rerun without --skip-build"):
+        package_dmg.verify_build_cache("arm64", "edited source", reuse=True)
+
+    monkeypatch.setattr(package_dmg, "source_digest", lambda: "original source")
+    resource.write_text("changed resource")
+    with pytest.raises(RuntimeError, match="rerun without --skip-build"):
+        package_dmg.verify_build_cache("arm64", "original source", reuse=True)
 
 
 def test_native_source_archive_excludes_legacy_engines_and_builds(tmp_path, monkeypatch):

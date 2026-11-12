@@ -8,4 +8,4 @@
 
 源码构建需要 Swift 工具链。通过 MacPorts 安装音频工具时，请按 MacPorts 的安装说明准备对应的开发工具。
 
-环境测试内可直接切换「MacPorts / Monterey」，复制安装命令并打开官方说明；也可手动放入两项兼容工具。完整步骤见[音频工具安装](AUDIO_TOOLS.md)。
+运行环境测试内可直接切换「MacPorts / Monterey」，复制安装命令并打开官方说明；也可手动放入两项兼容工具。完整步骤见[音频工具安装](AUDIO_TOOLS.md)。

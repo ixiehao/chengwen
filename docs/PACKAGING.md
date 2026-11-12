@@ -1,13 +1,15 @@
 # 双架构 DMG 打包
 
-先按[开发文档](DEVELOPMENT.md)完成验证。需要 macOS、Swift 工具链、Python 3.9+、uv、FFmpeg/同目录 FFprobe，以及可执行目标架构的环境。首次运行会在构建机创建隔离 Python 3.12.13，并安装固定的 dmgbuild/ds-store/mac-alias；不会装进 App。
+构建机需要 macOS、Swift 工具链、Python 3.9+、uv、FFmpeg 与同目录的 FFprobe，并能运行目标架构。首次打包会创建隔离的 Python 3.12.13 工具环境。按[开发文档](DEVELOPMENT.md)准备环境后，从项目根目录运行以下命令。每次打包使用独立的输出目录。
 
 ```sh
-python3 macos/package_dmg.py --preflight --output-dir dist/native/new-preview
-python3 macos/package_dmg.py --output-dir dist/native/new-preview
+python3 scripts/validate.py
+python3 macos/package_dmg.py --preflight --output-dir dist/native/0.9.5-build907
+python3 macos/package_dmg.py --output-dir dist/native/0.9.5-build907
+(cd dist/native/0.9.5-build907 && shasum -a 256 -c ./*.dmg.sha256)
 ```
 
-默认顺序生成 arm64 和 x86_64 两包，可用 `--architecture arm64|x86_64` 单独构建。已有目标、报告、校验和或悬空链接均拒绝覆盖。`--preflight` 仅检查源码、工具与目标冲突；`--skip-build` 仅供明确复用已验证编译产物的维护场景，实际版本与资源不一致仍会失败。
+默认生成 Apple 芯片（`arm64`）和 Intel（`x86_64`）两包。可用 `--architecture arm64` 或 `--architecture x86_64` 单独构建。DMG 文件名为 `chengwen-<版本>-<架构>.dmg`，本地与 GitHub Release 使用相同的文件名。已有目标、校验文件、验证报告或悬空链接均拒绝覆盖。`--preflight` 检查源码、工具和产物冲突。`--skip-build` 只复用本脚本记录且源码、工具链、可执行文件与资源均匹配的构建。
 
 ## 版本、源码与签名
 
@@ -34,3 +36,7 @@ Swift Release 使用 `-Osize`。先核对 EXE/dSYM 的 UUID/CPU 并归档匹配�
 DMG 使用 ULMO 压缩，应用最低 macOS 12。安装界面保持统一 960×600 浅蓝背景、128px 图标、应用(260,298)、Applications(700,298)、箭头与双语说明。每个 CPU 核对实际 Mach-O 和 Launch Services 系统下限、签名、许可证、源码、DMG 校验和及 Finder 布局，再复制到隔离目录运行原生 UI、WebKit 合成连接和五格式本地媒体回归。
 
 产物附 `.dmg.sha256` 与 `-verification.json`。本机/Rosetta 成功不替代 macOS 12 或物理 Intel 验收；没有上传、创建 Release 或覆盖用户安装的步骤。
+
+## 发布核对
+
+从干净提交打包，核对两个验证报告中的源码提交和摘要，再用该提交创建版本标签。Release 附两个 DMG 和各自的 SHA-256 校验文件，附件显示完整文件名，安装包另标明芯片。发布后通过公开下载链接重新取回文件并校验 SHA-256，再确认 README 的下载入口和版本号。

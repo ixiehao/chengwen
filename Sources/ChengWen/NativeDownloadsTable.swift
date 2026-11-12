@@ -339,7 +339,7 @@ private struct NativeDownloadDetails: View {
                     Button("账号设置", action: showAccounts).buttonStyle(ReferenceButtonStyle())
                 }
                 if NativeDownloadPresentation.recoveryAction(job) == .environment {
-                    Button("环境测试", action: showEnvironment).buttonStyle(ReferenceButtonStyle())
+                    Button("运行环境测试", action: showEnvironment).buttonStyle(ReferenceButtonStyle())
                 }
             }
         }.padding(18).frame(width: 420, height: 270).foregroundColor(LibraryTheme.ink).background(LibraryTheme.background)

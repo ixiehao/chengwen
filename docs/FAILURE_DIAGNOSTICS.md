@@ -9,7 +9,7 @@
 | rate_limited / account_risk | 平台限流/安全验证，停止本次请求并暂停对应账号自动请求。 |
 | account_expired / account_changed | 会话过期或已退出/切换，不使用旧引用、不退回匿名地址。 |
 | account_permission | 没有该版本下载权益、错歌、试听或保护格式；拒绝当作完整歌曲保存。 |
-| dependency / tool_launch / tool_timeout | 缺少、无法启动或超时的FFmpeg/FFprobe；打开环境测试检查兼容工具。 |
+| dependency / tool_launch / tool_timeout | 缺少、无法启动或超时的FFmpeg/FFprobe；打开运行环境测试检查兼容工具。 |
 | audio_invalid / audio_incomplete | 不可识别、编码/容器错误、时长不符或实际可解码内容不足；拒绝发布。 |
 | filesystem | 空间、配额、目录权限或写入问题；更换保存位置或释放空间。 |
 

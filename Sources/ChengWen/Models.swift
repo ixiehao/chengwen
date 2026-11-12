@@ -132,6 +132,15 @@ struct EnvironmentItem: Identifiable {
     var path: String
     var detail: String
     var required: Bool
+    var isReady: Bool { ["ready", "available", "passed", "ok"].contains(state) }
+    var statusText: String {
+        if isReady { return version.isEmpty ? "已就绪" : version }
+        switch state {
+        case "missing": return "未找到"
+        case "failed": return id == "engine" ? "检查失败" : "无法运行"
+        default: return "待处理"
+        }
+    }
     init(_ value:[String:Any]) { id=value["key"] as? String ?? "";title=value["title"] as? String ?? id;state=value["state"] as? String ?? "failed";version=value["version"] as? String ?? "";path=value["path"] as? String ?? "";detail=value["detail"] as? String ?? "";required=value["required"] as? Bool ?? true }
 }
 enum AppFiles {

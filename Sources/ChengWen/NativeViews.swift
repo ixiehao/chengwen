@@ -652,18 +652,15 @@ private struct NativeEnvironmentList: View {
                     ForEach(model.healthItems, id: \.id) { item in
                         VStack(alignment: .leading, spacing: 6) {
                             HStack(spacing: 7) {
-                                TablerIcon(name: ready(item) ? "circle-check" : "alert-circle", size: 16).foregroundColor(stateColor(item))
+                                TablerIcon(name: item.isReady ? "circle-check" : "alert-circle", size: 16).foregroundColor(stateColor(item))
                                 Text(item.title).font(.system(size: 15, weight: .medium))
                                 if !item.required { Text("可选").font(.system(size: 11)).foregroundColor(.secondary) }
                                 Spacer(minLength: 0)
-                                Text(item.version.isEmpty ? (ready(item) ? "已就绪" : (["ffmpeg", "ffprobe"].contains(item.id) ? "未找到" : "待处理")) : item.version)
+                                Text(item.statusText)
                                     .font(.system(size: 12)).foregroundColor(stateColor(item)).lineLimit(1)
                             }
-                            if !item.detail.isEmpty && !ready(item) && !["ffmpeg", "ffprobe"].contains(item.id) {
+                            if !item.detail.isEmpty && !item.isReady {
                                 Text(item.detail).font(.system(size: 12)).foregroundColor(.secondary).fixedSize(horizontal: false, vertical: true)
-                            }
-                            if !ready(item), !["ffmpeg", "ffprobe"].contains(item.id) {
-                                Text("请重新安装完整的澄闻应用。").font(.system(size: 12)).foregroundColor(.secondary)
                             }
                             if !item.path.isEmpty {
                                 HStack(spacing: 8) {
@@ -683,8 +680,7 @@ private struct NativeEnvironmentList: View {
             }
         }
     }
-    private func ready(_ item: EnvironmentItem) -> Bool { ["ready", "available", "passed", "ok"].contains(item.state) }
-    private func stateColor(_ item: EnvironmentItem) -> Color { ready(item) ? LibraryTheme.success : item.required ? LibraryTheme.warning : .secondary }
+    private func stateColor(_ item: EnvironmentItem) -> Color { item.isReady ? LibraryTheme.success : item.required ? LibraryTheme.warning : .secondary }
 }
 
 struct NativeEmptyState: View {

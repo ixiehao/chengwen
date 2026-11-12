@@ -294,7 +294,7 @@ import Foundation
             self.isCheckingEnvironment=false;self.healthTask=nil
             switch result {
             case .success(let data):self.healthItems=(data["items"] as? [[String:Any]] ?? []).map{EnvironmentItem($0)}
-            case .failure(let error):self.healthItems=[EnvironmentItem(["key":"engine","title":"音乐后台","state":"failed","detail":error.reason,"required":true])]
+            case .failure(let error):self.healthItems=[EnvironmentItem(["key":"engine","title":"音乐下载引擎","state":"failed","detail":error.reason,"required":true])]
             }
         }
     }

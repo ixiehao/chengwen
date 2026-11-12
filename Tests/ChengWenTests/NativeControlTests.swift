@@ -280,6 +280,15 @@ final class NativeControlTests: XCTestCase {
         }
     }
 
+    func testEnvironmentStatusDistinguishesMissingFromUnusableTools() {
+        let missing = EnvironmentItem(["key":"ffmpeg", "state":"missing"])
+        let failed = EnvironmentItem(["key":"ffmpeg", "state":"failed", "path":"/tmp/ffmpeg"])
+        let ready = EnvironmentItem(["key":"ffmpeg", "state":"ready", "version":"9.0.1"])
+        XCTAssertEqual(missing.statusText, "未找到")
+        XCTAssertEqual(failed.statusText, "无法运行")
+        XCTAssertEqual(ready.statusText, "9.0.1")
+    }
+
     @MainActor func testEnvironmentSheetKeepsHeaderAndFooterVisibleWhileScrolling() async throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent("chengwen-environment-layout-" + UUID().uuidString)
         let model = AppModel(storeURL: root)

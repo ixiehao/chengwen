@@ -48,6 +48,11 @@ def no_existing(*paths):
             raise FileExistsError(f"Refusing to replace existing output: {path}")
 
 
+def installer_paths(output, version, architecture):
+    stem = f"chengwen-{version}-{architecture}"
+    return output / f"{stem}.dmg", output / f"{stem}.dmg.sha256", output / f"{stem}-verification.json"
+
+
 def source_files():
     """Buildable native source, text docs, build scripts and notices.
 
@@ -219,6 +224,39 @@ def native_binary_directory(architecture):
     return Path(subprocess.check_output(["swift", "build", "--scratch-path", str(ROOT / f".build-native-{architecture}"), "-c", "release", "--arch", architecture, "--show-bin-path"], cwd=ROOT, text=True).strip())
 
 
+def native_resource_bundle(directory):
+    bundles = list(directory.glob("ChengWen_*.bundle"))
+    if len(bundles) != 1 or not bundles[0].is_dir():
+        raise RuntimeError("Native resource bundle missing or ambiguous")
+    return bundles[0]
+
+
+def verify_build_cache(architecture, expected_source, reuse):
+    if source_digest() != expected_source:
+        raise RuntimeError("Source changed during build; rebuild both installers")
+    receipt = CACHE / f"swift-{architecture}-build.json"
+    try:
+        directory = native_binary_directory(architecture)
+        bundle = native_resource_bundle(directory)
+        files = [directory / "ChengWen", *sorted(path for path in bundle.rglob("*") if path.is_file())]
+        environment = build_metadata()
+        record = {
+            "source_sha256": expected_source,
+            "toolchain": {key: environment[key] for key in ("swift", "xcode", "host_macos")},
+            "files": {path.relative_to(directory).as_posix(): hashlib.sha256(path.read_bytes()).hexdigest() for path in files},
+        }
+        if not reuse:
+            receipt.write_text(json.dumps(record, indent=2) + "\n")
+            return
+        if json.loads(receipt.read_text()) == record:
+            return
+    except (OSError, ValueError, RuntimeError, subprocess.CalledProcessError) as error:
+        if not reuse:
+            raise
+        raise RuntimeError(f"Cannot verify cached {architecture} build; rerun without --skip-build") from error
+    raise RuntimeError(f"Cached {architecture} build differs from its source or artifacts; rerun without --skip-build")
+
+
 def binary_uuids(path):
     output = subprocess.check_output(["/usr/bin/dwarfdump", "--uuid", str(path)], text=True)
     pairs = re.findall(r"UUID: ([0-9A-Fa-f-]+) \(([^)]+)\)", output)
@@ -268,10 +306,8 @@ def assemble(application, architecture, version):
         raise RuntimeError("Stripping changed executable UUID/CPU")
     symbols["stripped_bytes"] = binary.stat().st_size
     symbols["removed_bytes"] = symbols["original_bytes"] - symbols["stripped_bytes"]
-    bundles = list(swift.glob("ChengWen_*.bundle"))
-    if len(bundles) != 1:
-        raise RuntimeError("Native resource bundle missing or ambiguous")
-    shutil.copytree(bundles[0], resources / bundles[0].name, symlinks=True)
+    bundle = native_resource_bundle(swift)
+    shutil.copytree(bundle, resources / bundle.name, symlinks=True)
     info = release_info()
     info.update(LSApplicationCategoryType="public.app-category.music", CFBundleSupportedPlatforms=["MacOSX"], LSArchitecturePriority=[architecture])
     (contents / "Info.plist").write_bytes(plistlib.dumps(info))
@@ -289,8 +325,7 @@ def assemble(application, architecture, version):
 
 
 def package(output, architecture, version, expected_source, python):
-    final = output / f"澄闻-{version}-{architecture}.dmg"
-    checksum, report_path = output / (final.name + ".sha256"), output / (final.stem + "-verification.json")
+    final, checksum, report_path = installer_paths(output, version, architecture)
     no_existing(final, checksum, report_path)
     with owned_stage(output, f".chengwen-{architecture}-") as stage:
         application = stage / "澄闻.app"
@@ -329,7 +364,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--architecture", choices=("all", "arm64", "x86_64"), default="all")
     parser.add_argument("--output-dir", type=Path, default=ROOT / "dist/native")
-    parser.add_argument("--skip-build", action="store_true")
+    parser.add_argument("--skip-build", action="store_true", help="Reuse an unchanged build recorded by this packaging script")
     parser.add_argument("--preflight", action="store_true", help="Check source, tools and output collisions without building or downloading tools")
     args = parser.parse_args()
     output = args.output_dir.expanduser().absolute()
@@ -339,8 +374,7 @@ def main():
     version = release_info()["CFBundleShortVersionString"]
     architectures = ("arm64", "x86_64") if args.architecture == "all" else (args.architecture,)
     for architecture in architectures:
-        name = f"澄闻-{version}-{architecture}.dmg"
-        no_existing(output / name, output / (name + ".sha256"), output / (name.removesuffix(".dmg") + "-verification.json"))
+        no_existing(*installer_paths(output, version, architecture))
     missing_tools = [tool for tool in ("swift", "xcrun", "uv", "codesign", "hdiutil", "ditto", "ffmpeg", "ffprobe") if shutil.which(tool) is None]
     if missing_tools:
         raise RuntimeError("Missing host tools: " + ", ".join(missing_tools) + "; see docs/DEVELOPMENT.md")
@@ -355,6 +389,7 @@ def main():
             if not args.skip_build:
                 print(f"Building pure Swift application: {architecture}", flush=True)
                 build(architecture)
+            verify_build_cache(architecture, expected_source, reuse=args.skip_build)
             package(output, architecture, version, expected_source, python)
 
 
