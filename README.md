@@ -2,6 +2,8 @@
 
 **macOS 音乐下载与收藏**
 
+**0.9.5 预览版** · [Apple Silicon（M 系列）DMG](https://github.com/ixiehao/chengwen/releases/download/v0.9.5-preview.1/chengwen-0.9.5-preview.1-arm64.dmg) · [Intel DMG](https://github.com/ixiehao/chengwen/releases/download/v0.9.5-preview.1/chengwen-0.9.5-preview.1-x86_64.dmg)
+
 ![搜索界面（合成数据）](docs/screenshot.png)
 
 ## 功能
@@ -14,7 +16,7 @@
 
 ## 安装
 
-澄闻 0.9.5 的最低部署目标为 macOS 12。按芯片选择 Apple Silicon 或 Intel 版 DMG，打开后将「澄闻」拖入「应用程序」。预览包采用临时签名，尚未经过 Apple 公证。[下载安装包](https://github.com/ixiehao/chengwen/releases/tag/v0.9.5-preview.1)
+最低部署目标为 macOS 12。打开对应芯片的 DMG，将「澄闻」拖入「应用程序」。预览包采用临时签名，尚未经过 Apple 公证。[发布说明与 SHA-256 校验文件](https://github.com/ixiehao/chengwen/releases/tag/v0.9.5-preview.1)
 
 下载和音频转换需要安装 FFmpeg 与同目录的 FFprobe。打开澄闻后，在右上角的「运行环境测试」查看安装方法和工具状态。[音频工具安装](docs/AUDIO_TOOLS.md)
 
