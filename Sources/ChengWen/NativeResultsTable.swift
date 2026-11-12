@@ -317,7 +317,9 @@ final class NativeResultsHeaderView: NSTableHeaderView {
         super.layout()
         guard tableView?.numberOfColumns ?? 0 > 0 else { return }
         let rect = headerRect(ofColumn: 0)
-        selectAllButton.frame = NSRect(x: rect.midX - 7, y: rect.midY - 8, width: 14, height: 16)
+        let size = selectAllButton.intrinsicContentSize
+        selectAllButton.frame = NSRect(x: rect.midX - size.width / 2, y: rect.midY - size.height / 2,
+                                     width: size.width, height: size.height)
     }
 }
 
