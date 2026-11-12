@@ -1,0 +1,174 @@
+{
+  "version": "0.7.0",
+  "verified_date": "2026-11-03",
+  "recorded_utc": "2026-11-02T23:46:26.975058+00:00",
+  "reference": {
+    "project": "listen1/listen1_chrome_extension",
+    "commit": "3f24efa045125875a609dcb0f3f3f0be4edb8b37",
+    "license": "MIT"
+  },
+  "samples": [
+    {
+      "source": "netease",
+      "search_succeeded": true,
+      "search_count": 5,
+      "anonymous_complete_download_verified": true,
+      "sample_track": {
+        "album": "Carefree",
+        "artist": "Kevin MacLeod",
+        "duration": "3:25",
+        "ext": "mp3",
+        "id": "f41b46d1240a8b235191f466",
+        "source": "netease",
+        "title": "Carefree"
+      },
+      "probe_bytes": 131072,
+      "decoded_seconds": 205.078639,
+      "codec": "mp3",
+      "bytes": 3282277,
+      "media_host": "music.163.com",
+      "media_retained": false,
+      "cookies_sent": false,
+      "account_reference_used": false,
+      "implementation": "Swift",
+      "search_keyword": "Carefree"
+    },
+    {
+      "source": "kuwo",
+      "search_succeeded": true,
+      "search_count": 5,
+      "anonymous_complete_download_verified": true,
+      "sample_track": {
+        "album": "—",
+        "artist": "苏妙玲",
+        "duration": "3:33",
+        "ext": "mp3",
+        "id": "98e8c7f161080870e20db40b",
+        "source": "kuwo",
+        "title": "Care Free"
+      },
+      "probe_bytes": 131072,
+      "decoded_seconds": 213.699569,
+      "codec": "mp3",
+      "bytes": 3420347,
+      "media_host": "kw-er.kuwo.cn",
+      "media_retained": false,
+      "cookies_sent": false,
+      "account_reference_used": false,
+      "implementation": "Swift",
+      "search_keyword": "Carefree"
+    },
+    {
+      "source": "kugou",
+      "search_succeeded": true,
+      "search_count": 5,
+      "anonymous_complete_download_verified": true,
+      "sample_track": {
+        "album": "—",
+        "artist": "儿童歌曲",
+        "duration": "1:12",
+        "ext": "mp3",
+        "id": "deffad809b14a3cbe5e67284",
+        "source": "kugou",
+        "title": "小星星"
+      },
+      "probe_bytes": 131072,
+      "decoded_seconds": 72.811791,
+      "codec": "mp3",
+      "bytes": 1166105,
+      "media_host": "sharefs.kugou.com",
+      "media_retained": false,
+      "cookies_sent": false,
+      "account_reference_used": false,
+      "implementation": "Swift",
+      "search_keyword": "小星星"
+    },
+    {
+      "source": "qq",
+      "search_succeeded": true,
+      "search_count": 5,
+      "anonymous_complete_download_verified": true,
+      "sample_track": {
+        "album": "标准礼仪曲集",
+        "artist": "中国人民解放军军乐团",
+        "duration": "4:37",
+        "ext": "m4a",
+        "id": "3a87a55e9ed1ebe73bc447a3",
+        "source": "qq",
+        "title": "国际歌 (合唱版)"
+      },
+      "probe_bytes": 131072,
+      "decoded_seconds": 277.800091,
+      "codec": "aac",
+      "bytes": 3362687,
+      "media_host": "sjy6.stream.qqmusic.qq.com",
+      "media_retained": false,
+      "cookies_sent": false,
+      "account_reference_used": false,
+      "implementation": "Swift",
+      "search_keyword": "国际歌"
+    },
+    {
+      "source": "migu",
+      "search_succeeded": true,
+      "search_count": 5,
+      "anonymous_complete_download_verified": true,
+      "sample_track": {
+        "album": "汪苏泷原创合集",
+        "artist": "汪苏泷",
+        "duration": "3:16",
+        "ext": "mp3",
+        "id": "5d4e80d742a2b321b2605fdc",
+        "source": "migu",
+        "title": "小星星"
+      },
+      "probe_bytes": 131072,
+      "decoded_seconds": 190.066939,
+      "codec": "mp3",
+      "bytes": 3042118,
+      "media_host": "freetyst.nf.migu.cn",
+      "media_retained": false,
+      "cookies_sent": false,
+      "account_reference_used": false,
+      "implementation": "Swift",
+      "search_keyword": "小星星"
+    },
+    {
+      "source": "qianqian",
+      "search_succeeded": true,
+      "search_count": 5,
+      "anonymous_complete_download_verified": true,
+      "sample_track": {
+        "album": "50首钢琴摇篮曲",
+        "artist": "摇篮曲月亮摇篮曲河",
+        "duration": "2:49",
+        "ext": "mp3",
+        "id": "35e4336b35c33ededa0c036c",
+        "source": "qianqian",
+        "title": "小星星白噪声雨"
+      },
+      "probe_bytes": 131072,
+      "decoded_seconds": 169.555442,
+      "codec": "mp3",
+      "bytes": 2713853,
+      "media_host": "audio04.dmhmusic.com",
+      "media_retained": false,
+      "cookies_sent": false,
+      "account_reference_used": false,
+      "implementation": "Swift",
+      "search_keyword": "小星星"
+    }
+  ],
+  "limitations": [
+    "Finite successful samples are not a whole-catalogue success rate or a guarantee for VIP songs.",
+    "Migu catalogue says 196 seconds; the complete advertised-size PQ resource decodes to 190.066939 seconds.",
+    "Search metadata, bounded preview, anonymous complete download and authenticated complete download are separate states.",
+    "Apple Silicon/macOS27 development host; no Monterey or physical Intel hardware validation."
+  ],
+  "negative_cases": {
+    "qq": "An empty purl/result104003 is rejected even when search pay_down is 0; a failure result with a URL is also rejected.",
+    "kugou": "PayType2/Privilege10 entries returned status0 and no URL; free PayType0/Privilege0 entries succeeded.",
+    "migu": "auditionsLength60 with no complete URL is rejected as preview.",
+    "qianqian": "isVip1 and no path is rejected; pay_model2 alone is not treated as paid because it also occurs on the successful free sample."
+  }
+}

@@ -1,0 +1,2 @@
+# Host tests only; never bundled as an application runtime.
+pytest==8.4.2

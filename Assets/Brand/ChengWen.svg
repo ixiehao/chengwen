@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" role="img" aria-labelledby="title description">
+  <title id="title">09 · 双韵</title>
+  <desc id="description">两枚实心符头、两根略带弧度的符干及单条柔和横梁，组成两个相连的八分音符。</desc>
+  <!-- Original hand-drawn beamed-eighth-note proposal. No font glyph or stock brand asset. -->
+  <defs>
+    <linearGradient id="purple" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#9877FF"/>
+      <stop offset="1" stop-color="#4A29C2"/>
+    </linearGradient>
+  </defs>
+  <rect x="46" y="46" width="932" height="932" rx="210" fill="url(#purple)"/>
+  <g fill="#FFFFFF">
+    <!-- Exactly two filled, gently tilted note heads. -->
+    <path d="M420 712C405 749 354 781 312 776C270 771 266 741 294 710C322 678 369 660 402 671C421 678 429 694 420 712Z"/>
+    <path d="M686 655C671 692 620 724 578 719C536 714 532 684 560 653C588 621 635 603 668 614C687 621 695 637 686 655Z"/>
+    <!-- Two distinct stems, with restrained hand-written curvature. -->
+    <path d="M393 724C402 605 406 463 412 354L417 331C420 322 437 320 443 329C448 334 448 347 446 362C435 469 440 593 427 705C425 723 410 736 396 738Z"/>
+    <path d="M659 667C667 550 679 399 680 290L686 260C689 250 708 251 717 262C721 269 721 281 719 295C709 405 705 535 693 648C691 667 678 679 664 681Z"/>
+    <!-- One connecting beam only: the pair is eighth notes, not sixteenths. -->
+    <path d="M420 330C509 314 598 284 687 261C705 256 718 266 718 283L715 315C622 338 532 366 424 386Z"/>
+  </g>
+</svg>

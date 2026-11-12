@@ -1,0 +1,6 @@
+#!/bin/zsh
+set -e
+project_dir="${0:A:h:h:h:h}"
+export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+cd -- "$project_dir"
+open -a Terminal "$project_dir/启动澄闻.command"

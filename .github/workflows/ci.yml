@@ -1,0 +1,44 @@
+name: Verify source and native builds
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: chengwen-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      # Official actions/checkout v6 tag resolved and pinned on 2026-11-06.
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - name: Prepare isolated host tools
+        run: |
+          python3 -m venv "$RUNNER_TEMP/chengwen-uv"
+          "$RUNNER_TEMP/chengwen-uv/bin/python" -m pip install uv==0.12.0
+          echo "$RUNNER_TEMP/chengwen-uv/bin" >> "$GITHUB_PATH"
+          brew list ffmpeg >/dev/null 2>&1 || brew install ffmpeg
+          uname -m
+      - name: Verify licenses, host tests, native tests and both Release targets
+        run: |
+          set -o pipefail
+          python3 scripts/validate.py 2>&1 | tee "$RUNNER_TEMP/chengwen-validation.log"
+      # Official actions/upload-artifact v6 tag resolved and pinned on 2026-11-06.
+      - name: Keep failed validation log
+        if: failure()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: chengwen-validation-log
+          path: ${{ runner.temp }}/chengwen-validation.log
+          retention-days: 7
+          if-no-files-found: warn

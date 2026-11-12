@@ -1,0 +1,26 @@
+[
+  {
+    "name": "Tabler Icons",
+    "version": "3.35.0",
+    "license": "MIT",
+    "source": "https://github.com/tabler/tabler-icons",
+    "notice": "tabler-icons-LICENSE.txt",
+    "use": "Official icons exported as PNG for native controls."
+  },
+  {
+    "name": "TuneWeave request-encoding reference",
+    "version": "b6e35c0999965d56ba61b2cfc146218b5763b343",
+    "license": "MIT",
+    "source": "https://github.com/MOPELotus/TuneWeave",
+    "notice": "TuneWeave-MIT.txt",
+    "use": "Kuwo request encoding port and public test vectors only; no audio decryption."
+  },
+  {
+    "name": "Listen1 public-source protocol reference",
+    "version": "3f24efa045125875a609dcb0f3f3f0be4edb8b37",
+    "license": "MIT",
+    "source": "https://github.com/listen1/listen1_chrome_extension",
+    "notice": "Listen1-MIT.txt",
+    "use": "Public catalogue and media protocol reference for native Swift adapters; no JS runtime, browser session extraction, hosted parser, or audio decryption."
+  }
+]

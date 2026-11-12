@@ -1,0 +1,25 @@
+.venv/
+__pycache__/
+.pytest_cache/
+*.egg-info/
+.DS_Store
+*.log
+build/
+dist/
+.build-release/
+.build-native*/
+.build-*/
+.build/
+.swiftpm/
+
+# Local maintenance and private development material; never publish.
+/维护记录/
+/.local/
+/local-config/
+/accounts-export/
+.env
+.env.*
+*.p12
+*.pfx
+*.mobileprovision
+/cookies*.txt

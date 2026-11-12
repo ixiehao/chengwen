@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 私密报告安全漏洞
+    url: https://github.com/ixiehao/chengwen/security/advisories/new
+    about: 请通过此表单联系维护者，勿在公开 Issue 中贴出漏洞细节或凭据。
