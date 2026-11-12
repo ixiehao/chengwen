@@ -30,7 +30,7 @@ sudo port install ffmpeg
 ## 手动安装
 
 1. 从 [FFmpeg 官网的 macOS 下载入口](https://ffmpeg.org/download.html)选择构建。预编译程序由官网列出的第三方提供，分别下载 ffmpeg 和 ffprobe，核对 CPU（Apple 芯片 / Intel）和最低 macOS 版本；Monterey 需明确支持 macOS 12。
-2. 解压两个程序，在环境测试中点击「打开工具文件夹…」，将 **ffmpeg、ffprobe 可执行文件本身**放到 `~/Library/Application Support/澄闻/bin/`。不要只放压缩包或外层文件夹；不要把不同发行版、不同 CPU 的工具混用。
+2. 解压两个程序，在环境测试中点击「打开工具文件夹…」，将 **ffmpeg、ffprobe 可执行文件本身**放到打开的目录。新安装使用 `~/Library/Application Support/澄闻/bin/`，沿用旧版数据时使用 `~/Library/Application Support/VmDown/bin/`。不要只放压缩包或外层文件夹；不要混用不同发行版或不同芯片的工具。
 3. 按 macOS 提示核实来源与兼容性。无法运行时，可改用上面的包管理器安装；App 不修改系统安全设置，也不自动执行安装命令。
 
 ## 验证
