@@ -204,14 +204,17 @@ private struct NativeSearchPage: View {
 
     private func searchControls(width: CGFloat) -> some View {
         let searchWidth = min(300, max(230, width * 0.28))
+        let controlHeight = NativeSearchField.preferredHeight
         return VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .center, spacing: 18) {
                 HStack(spacing: 8) {
                     NativeSearchField(text: $model.keyword, label: "歌曲、歌手或专辑", onSearch: model.search)
-                        .frame(height: 28).disabled(model.isSearching)
+                        .frame(height: controlHeight).disabled(model.isSearching)
                     NativeFormButton(title: model.isSearching ? "停止" : "搜索", primary: !model.isSearching,
+                                     identifier: "music-search-action",
+                                     controlHeight: controlHeight,
                                      action: model.isSearching ? model.stopSearch : model.search)
-                        .frame(width: 68, height: 28)
+                        .frame(width: 68, height: controlHeight)
                         .disabled(!model.isSearching && model.keyword.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }.frame(width: searchWidth)
                 HStack(spacing: 6) {

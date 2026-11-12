@@ -32,6 +32,8 @@ struct ReferenceCheckboxStyle: ToggleStyle {
 }
 
 final class ReferenceCheckboxButton: NSButton {
+    // The custom drawing uses the whole bounds, including the leading pixel.
+    override var alignmentRectInsets: NSEdgeInsets { NSEdgeInsetsZero }
     override var intrinsicContentSize: NSSize {
         let native = super.intrinsicContentSize
         guard !title.isEmpty else { return native }

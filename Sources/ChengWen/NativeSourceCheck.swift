@@ -49,7 +49,11 @@ enum NativeSourceCheck {
                 if arguments.contains("--download") {
                     let result = try await NativeMusicEngine.download(track, resolved: resolved, directory: root, format: "original", saveLyrics: false, event: { _, _ in })
                     let attributes = (try? FileManager.default.attributesOfItem(atPath: result["path"] as? String ?? "")) ?? [:]
-                    attempt["download"] = ["duration": result["duration"] ?? 0, "codec": result["codec"] ?? "", "bytes": (attributes[.size] as? NSNumber)?.int64Value ?? 0, "full_verified": result["full_verified"] as? Bool ?? false, "anonymous": result["anonymous"] as? Bool ?? false]
+                    let bytes: Int64 = (attributes[.size] as? NSNumber)?.int64Value ?? 0
+                    let fullVerified = (result["full_verified"] as? Bool) ?? false
+                    let anonymous = (result["anonymous"] as? Bool) ?? false
+                    let download: [String:Any] = ["duration": result["duration"] ?? 0, "codec": result["codec"] ?? "", "bytes": bytes, "full_verified": fullVerified, "anonymous": anonymous]
+                    attempt["download"] = download
                 }
                 report["passed"] = true
                 attempts.append(attempt)

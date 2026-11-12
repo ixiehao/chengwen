@@ -194,7 +194,12 @@ final class NativeWindowLayoutTests:XCTestCase {
             try await eventually{!model.isBusy && !model.reason.isEmpty}
             window.setContentSize(size);await settle(host)
             XCTAssertEqual(host.bounds.width,size.width,accuracy:1)
-            XCTAssertEqual(host.bounds.height,size.height,accuracy:1,"Hosting must not expand the real window to its ideal content height")
+            // AppKit can shrink a full-size window to the runner's visible screen.
+            // Measure overflow against the actual host and reject any growth.
+            let requestedFrame = window.frameRect(forContentRect: NSRect(origin: .zero, size: size))
+            XCTAssertLessThanOrEqual(window.frame.height, requestedFrame.height + 1, "Hosting must not expand the real window to its ideal content height")
+            XCTAssertLessThanOrEqual(host.bounds.height, size.height + 1)
+            XCTAssertGreaterThanOrEqual(host.bounds.height, min(size.height, window.contentLayoutRect.height) - 1)
             let bitmap=try snapshot(host,name:"account-native-layout-\(Int(size.width))x\(Int(size.height))")
             // SwiftUI does not expose its virtual AX children in a standalone
             // XCTest host. Inspect the actual rendered text rather than invent

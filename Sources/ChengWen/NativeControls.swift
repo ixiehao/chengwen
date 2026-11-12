@@ -8,11 +8,19 @@ struct NativeSearchField: NSViewRepresentable {
     let label: String
     let onSearch: () -> Void
 
-    func makeCoordinator() -> Coordinator { Coordinator(self) }
-    func makeNSView(context: Context) -> NSSearchField {
+    @MainActor private static func styledField() -> NSSearchField {
         let field = NSSearchField()
         field.controlSize = .large
         field.font = .systemFont(ofSize: 15)
+        return field
+    }
+
+    // The large search field uses different bezel heights on different macOS versions.
+    @MainActor static let preferredHeight = styledField().intrinsicContentSize.height
+
+    func makeCoordinator() -> Coordinator { Coordinator(self) }
+    func makeNSView(context: Context) -> NSSearchField {
+        let field = Self.styledField()
         field.placeholderString = label
         field.sendsWholeSearchString = true
         field.sendsSearchStringImmediately = false
@@ -272,12 +280,12 @@ struct NativeIntegerField: NSViewRepresentable {
             // turn, before SwiftUI renders the changed binding. Keep AppKit's
             // companion control current immediately instead of stepping from
             // the previous rendered value.
-            (field.superview?.superview as? NativeIntegerControl)?.stepper.integerValue = value
+            (field.superview as? NativeIntegerControl)?.stepper.integerValue = value
         }
         @objc func step(_ sender: NSStepper) {
             // Commit the stepper immediately, including when the text field is focused.
             parent.value = sender.integerValue
-            if let view = sender.superview?.superview as? NativeIntegerControl {
+            if let view = sender.superview as? NativeIntegerControl {
                 view.field.stringValue = String(parent.value)
             }
         }
@@ -287,6 +295,9 @@ struct NativeIntegerField: NSViewRepresentable {
 final class NativeIntegerControl: NSView {
     let field = NSTextField()
     let stepper = NSStepper()
+    private var stepperWidth: CGFloat { max(18, stepper.intrinsicContentSize.width) }
+    private var stepperHeight: CGFloat { max(24, stepper.intrinsicContentSize.height) }
+    private var fieldHeight: CGFloat { max(28, field.intrinsicContentSize.height) }
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
         field.controlSize = .large
@@ -299,23 +310,27 @@ final class NativeIntegerControl: NSView {
         stepper.controlSize = .large
         stepper.valueWraps = false
         stepper.autorepeat = true
-        let stack = NSStackView(views: [field, stepper])
-        stack.orientation = .horizontal
-        stack.alignment = .centerY
-        stack.spacing = 6
-        stack.translatesAutoresizingMaskIntoConstraints = false
-        addSubview(stack)
+        // Keep both hit areas inside the bridge bounds, without stack-view
+        // detachment or native alignment insets shrinking the stepper.
+        field.translatesAutoresizingMaskIntoConstraints = false
+        stepper.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(field)
+        addSubview(stepper)
         NSLayoutConstraint.activate([
-            stack.leadingAnchor.constraint(equalTo: leadingAnchor),
-            stack.trailingAnchor.constraint(equalTo: trailingAnchor),
-            stack.centerYAnchor.constraint(equalTo: centerYAnchor),
+            field.leadingAnchor.constraint(equalTo: leadingAnchor),
+            field.trailingAnchor.constraint(equalTo: stepper.leadingAnchor, constant: -6),
+            field.centerYAnchor.constraint(equalTo: centerYAnchor),
             field.widthAnchor.constraint(greaterThanOrEqualToConstant: 62),
-            field.heightAnchor.constraint(equalToConstant: 28),
+            field.heightAnchor.constraint(equalToConstant: fieldHeight),
+            stepper.trailingAnchor.constraint(equalTo: trailingAnchor),
+            stepper.centerYAnchor.constraint(equalTo: centerYAnchor),
+            stepper.widthAnchor.constraint(equalToConstant: stepperWidth),
+            stepper.heightAnchor.constraint(equalToConstant: stepperHeight),
         ])
         setAccessibilityElement(false)
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
-    override var intrinsicContentSize: NSSize { NSSize(width: 94, height: 28) }
+    override var intrinsicContentSize: NSSize { NSSize(width: max(94, 68 + stepperWidth), height: max(fieldHeight, stepperHeight)) }
 }
 
 @MainActor private enum NativeControlIconCache {

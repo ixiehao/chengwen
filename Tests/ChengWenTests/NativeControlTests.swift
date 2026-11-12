@@ -217,21 +217,30 @@ final class NativeControlTests: XCTestCase {
     }
 
     @MainActor func testSearchFieldAndButtonShareNativeMetricsAndClickAction() async throws {
-        var clicks = 0
-        let fixture = mount(HStack(spacing: 8) {
-            NativeSearchField(text: .constant("Synthetic"), label: "等高搜索", onSearch: {})
-            NativeFormButton(title: "搜索", primary: true, action: { clicks += 1 }).frame(width: 68, height: 28)
-        }.frame(width: 400, height: 28))
+        let search = expectation(description: "Search button starts exactly one synthetic search")
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent("chengwen-search-metrics-" + UUID().uuidString)
+        let model = AppModel(storeURL: root, engine: BackendClient { operation, _, _ in
+            XCTAssertEqual(operation, "search")
+            search.fulfill()
+            return [:]
+        })
+        model.keyword = "Synthetic"
+        model.settings.sources = ["netease"]
+        let fixture = mount(NativeRootView().environmentObject(model))
+        fixture.window.setContentSize(NSSize(width: 1080, height: 700))
+        defer { model.shutdown(); try? FileManager.default.removeItem(at: root) }
         defer { fixture.window.makeFirstResponder(nil); fixture.window.contentView = nil }
         await settle(fixture.host)
         let field = try XCTUnwrap(descendants(fixture.host, of: NSSearchField.self).first)
-        let button = try XCTUnwrap(descendants(fixture.host, of: NSButton.self).first { $0.title == "搜索" })
+        let button = try XCTUnwrap(descendants(fixture.host, of: ReferenceActionButton.self).first { $0.accessibilityIdentifier() == "music-search-action" })
         XCTAssertEqual(field.controlSize, .large)
-        XCTAssertEqual(button.controlSize, .large)
-        XCTAssertEqual(field.frame.height, button.frame.height, accuracy: 0.5)
+        let fieldBounds = field.convert(field.bounds, to: fixture.host)
+        let buttonBounds = button.convert(button.bounds, to: fixture.host)
+        XCTAssertEqual(fieldBounds.height, buttonBounds.height, accuracy: 0.5)
+        XCTAssertEqual(fieldBounds.midY, buttonBounds.midY, accuracy: 0.5)
         XCTAssertEqual(field.intrinsicContentSize.height, button.intrinsicContentSize.height, accuracy: 0.5)
         button.performClick(nil)
-        XCTAssertEqual(clicks, 1)
+        await fulfillment(of: [search], timeout: 3)
     }
 
     @MainActor func testSavedPathIsSelectableReadOnlyAndAccessible() async throws {

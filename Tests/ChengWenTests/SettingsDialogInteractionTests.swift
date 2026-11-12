@@ -45,12 +45,12 @@ final class SettingsDialogInteractionTests: XCTestCase {
         return (window, host)
     }
     @MainActor private func close(_ window: NSWindow) { window.makeFirstResponder(nil); window.contentView = nil; window.close() }
-    @MainActor private func assertHit(_ view: NSView, in window: NSWindow, file: StaticString = #filePath, line: UInt = #line) throws {
+    @MainActor private func assertHit(_ view: NSView, in window: NSWindow, yFraction: CGFloat = 0.5, file: StaticString = #filePath, line: UInt = #line) throws {
         let content = try XCTUnwrap(window.contentView, file: file, line: line)
-        let point = view.convert(NSPoint(x: view.bounds.midX, y: view.bounds.midY), to: nil)
+        let point = view.convert(NSPoint(x: view.bounds.midX, y: view.bounds.minY + view.bounds.height * yFraction), to: nil)
         let target = content.hitTest(content.superview?.convert(point, from: nil) ?? point)
         XCTAssertTrue(target === view || target?.isDescendant(of: view) == true,
-                      "Visible control \(type(of: view)) must own its window hit area; got \(String(describing: target))", file: file, line: line)
+                      "Visible control \(type(of: view)) frame \(view.frame), visible \(view.visibleRect) must own its window hit area at \(point); got \(String(describing: target))", file: file, line: line)
     }
     @MainActor func testGeneralFieldsRemainReachableAfterScrollingResizingTabAndEnabledChanges() async throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent("chengwen-settings-interactions-" + UUID().uuidString)
@@ -64,7 +64,8 @@ final class SettingsDialogInteractionTests: XCTestCase {
         for (index, control) in controls.enumerated() {
             control.scrollToVisible(control.bounds); await settle(host)
             try assertHit(control.field, in: window)
-            try assertHit(control.stepper, in: window)
+            try assertHit(control.stepper, in: window, yFraction: 0.25)
+            try assertHit(control.stepper, in: window, yFraction: 0.75)
             XCTAssertTrue(window.makeFirstResponder(control.field))
             let editor = try XCTUnwrap(control.field.currentEditor() as? NSTextView)
             editor.selectAll(nil); editor.insertText(["17", "120", "3"][index], replacementRange: editor.selectedRange())
@@ -82,7 +83,9 @@ final class SettingsDialogInteractionTests: XCTestCase {
         for control in views(host, NativeIntegerControl.self) {
             XCTAssertTrue(control.field.isEnabled && control.stepper.isEnabled)
             control.scrollToVisible(control.bounds); await settle(host)
-            try assertHit(control.field, in: window); try assertHit(control.stepper, in: window)
+            try assertHit(control.field, in: window)
+            try assertHit(control.stepper, in: window, yFraction: 0.25)
+            try assertHit(control.stepper, in: window, yFraction: 0.75)
         }
         let popup = try XCTUnwrap(views(host, NSPopUpButton.self).first { $0.accessibilityLabel() == "默认音频格式" })
         popup.scrollToVisible(popup.bounds); await settle(host)
