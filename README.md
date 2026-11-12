@@ -2,7 +2,7 @@
 
 **macOS 音乐下载与收藏**
 
-**0.9.5** · [Apple Silicon（M 系列）DMG](https://github.com/ixiehao/chengwen/releases/download/v0.9.5-preview.1/chengwen-0.9.5-preview.1-arm64.dmg) · [Intel DMG](https://github.com/ixiehao/chengwen/releases/download/v0.9.5-preview.1/chengwen-0.9.5-preview.1-x86_64.dmg)
+**0.9.5** · [Apple Silicon（M 系列）DMG](https://github.com/ixiehao/chengwen/releases/download/v0.9.5-preview.1/chengwen-0.9.5-arm64.dmg) · [Intel DMG](https://github.com/ixiehao/chengwen/releases/download/v0.9.5-preview.1/chengwen-0.9.5-x86_64.dmg)
 
 ![搜索界面（合成数据）](docs/screenshot.png)
 
