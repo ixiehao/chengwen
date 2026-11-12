@@ -36,15 +36,16 @@ final class ReferenceCheckboxButton: NSButton {
     override var alignmentRectInsets: NSEdgeInsets { NSEdgeInsetsZero }
     override var intrinsicContentSize: NSSize {
         let native = super.intrinsicContentSize
-        guard !title.isEmpty else { return native }
         let box = min(18, max(0, native.height - 2))
         let label = (title as NSString).size(withAttributes: [.font: font ?? NSFont.systemFont(ofSize: 14)])
+        let labelWidth = title.isEmpty ? 0 : 7 + label.width
         // The custom checkbox has a wider label gap than NSButtonCell. Its
         // painted text and trailing pixel must remain inside the hit area.
-        return NSSize(width: max(native.width, ceil(1 + box + 7 + label.width + 1)), height: native.height)
+        return NSSize(width: max(native.width, ceil(1 + box + labelWidth + 1)), height: native.height)
     }
     override func draw(_ dirtyRect: NSRect) {
-        let size: CGFloat = min(18, bounds.height - 2)
+        let size = min(18, bounds.height - 2, bounds.width - 2)
+        guard size > 0 else { return }
         let box = NSRect(x: 1, y: (bounds.height-size)/2, width: size, height: size)
         let path = NSBezierPath(roundedRect: box, xRadius: 4, yRadius: 4)
         let active = state != .off
