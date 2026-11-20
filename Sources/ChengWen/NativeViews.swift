@@ -624,12 +624,12 @@ private struct NativeEnvironmentContent: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             NativeEnvironmentList()
-            if toolsNeedRepair {
+            if toolsNeedRepair && !model.isCheckingEnvironment {
                 Label { Text("音频工具尚未就绪，请按以下步骤安装或修复。").font(.system(size: 12)) }
-                    icon: { TablerIcon(name: "alert-circle", size: 16) }.foregroundColor(LibraryTheme.warning)
+                    icon: { TablerIcon(name: "alert-circle", size: 16) }.foregroundColor(.red)
                 NativeDependencyGuide()
             }
-            if !toolsNeedRepair {
+            if !toolsNeedRepair && !model.isCheckingEnvironment {
                 DisclosureGroup("安装或更换音频工具", isExpanded: $showInstallation) { NativeDependencyGuide().padding(.top, 8) }
                     .font(.system(size: 12))
             }
@@ -680,7 +680,11 @@ private struct NativeEnvironmentList: View {
             }
         }
     }
-    private func stateColor(_ item: EnvironmentItem) -> Color { item.isReady ? LibraryTheme.success : item.required ? LibraryTheme.warning : .secondary }
+    private func stateColor(_ item: EnvironmentItem) -> Color {
+        if model.isCheckingEnvironment { return .secondary }
+        if item.isReady { return LibraryTheme.success }
+        return item.required ? .red : LibraryTheme.warning
+    }
 }
 
 struct NativeEmptyState: View {

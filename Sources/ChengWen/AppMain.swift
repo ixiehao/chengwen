@@ -15,6 +15,13 @@ import SwiftUI
     var model:AppModel!
     var temporaryRoot:URL?
     private var terminating=false
+    private var checkingForUpdates = false
+    private var updateRetryAt: Date?
+    private var availableUpdate: (version: String, page: URL)?
+    private var cachedUpdate: (result: ReleaseCheck, expires: TimeInterval)?
+    private var pendingUpdate: ReleaseCheck?
+    private var updateTask: Task<Void, Never>?
+    var updateLoader: (String) async -> ReleaseCheck = { await ReleaseCheck.latest(installedVersion: $0) }
     func applicationDidFinishLaunching(_ notification:Notification) {
         let testing=CommandLine.arguments.contains("--native-smoke") || CommandLine.arguments.contains("--ui-preview")
         if testing {
@@ -56,6 +63,8 @@ import SwiftUI
     func applicationShouldTerminate(_ sender:NSApplication)->NSApplication.TerminateReply {
         guard !terminating else{return .terminateLater}
         terminating=true
+        updateTask?.cancel()
+        updateTask=nil
         model?.shutdown()
         let cleanup=DispatchGroup()
         cleanup.enter();NativeAccounts.prepareForTermination {cleanup.leave()}
@@ -69,7 +78,9 @@ import SwiftUI
     func applicationShouldHandleReopen(_ sender:NSApplication,hasVisibleWindows:Bool)->Bool {window?.makeKeyAndOrderFront(nil);return true}
     private func makeMenu() {
         let bar=buildMenu();NSApp.mainMenu=bar
-        NSApp.windowsMenu=bar.items.last?.submenu
+        NSApp.windowsMenu = bar.item(withTitle: "窗口")?.submenu
+        NSApp.helpMenu = bar.item(withTitle: "帮助")?.submenu
+        NotificationCenter.default.addObserver(self, selector: #selector(presentPendingUpdate(_:)), name: NSWindow.didEndSheetNotification, object: window)
     }
     // Building a menu does not install it or disturb another window's responder
     // chain. In particular, Select All stays untargeted so text editors retain it.
@@ -101,14 +112,103 @@ import SwiftUI
         windows.addItem(withTitle:"缩放",action:#selector(NSWindow.performZoom(_:)),keyEquivalent:"")
         windows.addItem(.separator())
         windows.addItem(withTitle:"全部移到前面",action:#selector(NSApplication.arrangeInFront(_:)),keyEquivalent:"")
+        let helpItem = NSMenuItem(title: "帮助", action: nil, keyEquivalent: "")
+        let help = NSMenu(title: "帮助")
+        helpItem.submenu = help
+        bar.addItem(helpItem)
+        help.addItem(withTitle: "检查更新…", action: #selector(checkForUpdates), keyEquivalent: "").target = self
+        help.addItem(withTitle: "检查依赖…", action: #selector(checkDependencies), keyEquivalent: "").target = self
+        let release = help.addItem(withTitle: "查看新版本", action: #selector(openReleasePage), keyEquivalent: "")
+        release.target = self
+        release.isHidden = availableUpdate == nil
         return bar
     }
     func validateMenuItem(_ menuItem:NSMenuItem)->Bool {
         guard let action=menuItem.action else{return false}
+        if action == #selector(checkForUpdates) {
+            return !checkingForUpdates && !terminating && window != nil && window.attachedSheet == nil
+        }
+        if action == #selector(openReleasePage) { return !terminating && availableUpdate != nil }
+        if action == #selector(checkDependencies) { return !terminating && window != nil && window.attachedSheet == nil }
         if [#selector(preferences),#selector(focusSearch),#selector(showSearch),#selector(showDownloads)].contains(action) {
             return window != nil && window.attachedSheet == nil
         }
         return true
+    }
+    @objc private func checkForUpdates() {
+        guard !checkingForUpdates, !terminating, let window, window.attachedSheet == nil else { return }
+        if let retryAt = updateRetryAt, retryAt > Date() {
+            showUpdateResult(.rateLimited(until: retryAt))
+            return
+        }
+        if let cachedUpdate, ProcessInfo.processInfo.systemUptime < cachedUpdate.expires {
+            showUpdateResult(cachedUpdate.result)
+            return
+        }
+        checkingForUpdates = true
+        updateTask = Task { [weak self, load = updateLoader] in
+            let result = await load(AppVersion.current)
+            guard let self, !Task.isCancelled, !self.terminating else { return }
+            self.checkingForUpdates = false
+            self.updateTask = nil
+            self.cachedUpdate = (result, ProcessInfo.processInfo.systemUptime + 60)
+            self.showUpdateResult(result)
+        }
+    }
+
+    private func showUpdateResult(_ result: ReleaseCheck) {
+        guard !terminating else { return }
+        let alert = NSAlert()
+        alert.messageText = "检查更新"
+        alert.addButton(withTitle: "好")
+        switch result {
+        case .upToDate:
+            availableUpdate = nil
+            alert.informativeText = "当前版本 \(AppVersion.current) 已是最新版本。"
+        case .available(let version, let page):
+            availableUpdate = (version, page)
+            alert.informativeText = "澄闻 \(version) 已发布。当前版本为 \(AppVersion.current)。"
+            alert.addButton(withTitle: "查看新版本")
+        case .noPublicRelease:
+            availableUpdate = nil
+            alert.informativeText = "GitHub Releases 暂无公开的正式版本。"
+        case .rateLimited(let until):
+            updateRetryAt = until
+            alert.informativeText = "GitHub 暂时限制了检查次数。请在 \(DateFormatter.localizedString(from: until, dateStyle: .none, timeStyle: .short)) 后重试。"
+        case .unavailable:
+            alert.informativeText = "暂时无法检查更新。请确认网络连接后重试。"
+        }
+        NSApp.helpMenu?.items.first { $0.action == #selector(openReleasePage) }?.isHidden = availableUpdate == nil
+        if window?.attachedSheet != nil {
+            pendingUpdate = result
+            return
+        }
+        if let window, window.isVisible, window.attachedSheet == nil {
+            alert.beginSheetModal(for: window) { [weak self] response in
+                if response == .alertSecondButtonReturn { self?.openReleasePage() }
+            }
+        } else if window?.attachedSheet == nil, alert.runModal() == .alertSecondButtonReturn {
+            openReleasePage()
+        }
+    }
+
+    @objc private func presentPendingUpdate(_ notification: Notification) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self, !self.terminating, self.window?.attachedSheet == nil,
+                  let result = self.pendingUpdate else { return }
+            self.pendingUpdate = nil
+            self.showUpdateResult(result)
+        }
+    }
+
+    @objc private func openReleasePage() {
+        if let update = availableUpdate { NSWorkspace.shared.open(update.page) }
+    }
+
+    @objc private func checkDependencies() {
+        guard !terminating, let window, window.attachedSheet == nil else { return }
+        window.makeKeyAndOrderFront(nil)
+        model.checkEnvironment()
     }
     @objc private func preferences(){guard let window=window,window.attachedSheet==nil else{return};model.page = .preferences;window.makeKeyAndOrderFront(nil)}
     @objc private func showSearch(){guard let window=window,window.attachedSheet==nil else{return};model.page = .search;window.makeKeyAndOrderFront(nil)}
@@ -131,7 +231,42 @@ import SwiftUI
             }else if attempts>1 {self.focusSearchField(attempts:attempts-1)}
         }
     }
-    @objc private func about(){NSApp.orderFrontStandardAboutPanel(options:[.applicationName:"澄闻",.applicationVersion:AppVersion.current,.credits:NSAttributedString(string:"澄闻 · 音乐下载与收藏\n把喜欢的声音，留给自己。\nMIT License\nSwiftUI / AppKit · 原生音乐引擎\nTabler Icons · 第三方许可随应用提供")])}
+    @objc private func about() {
+        let paragraph = NSMutableParagraphStyle()
+        paragraph.alignment = .center
+        paragraph.paragraphSpacing = 5
+        let body: [NSAttributedString.Key: Any] = [
+            .font: NSFont.systemFont(ofSize: 12),
+            .foregroundColor: NSColor.secondaryLabelColor,
+            .paragraphStyle: paragraph
+        ]
+        let credits = NSMutableAttributedString()
+        func append(_ text: String, url: String? = nil) {
+            var attributes = body
+            if let url, let destination = URL(string: url) {
+                attributes[.link] = destination
+                attributes[.foregroundColor] = NSColor.linkColor
+            }
+            credits.append(NSAttributedString(string: text, attributes: attributes))
+        }
+        append("macOS 音乐下载与收藏\n开发者 · ")
+        append("ixiehao", url: "https://github.com/ixiehao")
+        append("\n")
+        append("GitHub", url: "https://github.com/ixiehao/chengwen")
+        append(" · ")
+        append("反馈", url: "https://github.com/ixiehao/chengwen/issues/new/choose")
+        append("\n搜索和下载连接所选音源，音频在本机保存。\n")
+        append("MIT 许可证", url: "https://github.com/ixiehao/chengwen/blob/main/LICENSE")
+        var options: [NSApplication.AboutPanelOptionKey: Any] = [.applicationName: "澄闻", .credits: credits]
+        if let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String {
+            if version == Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String {
+                options[.version] = ""
+            }
+        } else {
+            options[.applicationVersion] = AppVersion.current
+        }
+        NSApp.orderFrontStandardAboutPanel(options: options)
+    }
     private func loadPreview() {
         func argument(_ key:String)->String? {
             guard let index=CommandLine.arguments.firstIndex(of:key),CommandLine.arguments.count>index+1 else{return nil}

@@ -178,6 +178,85 @@ final class NativeInteractionTests:XCTestCase {
         let view=try XCTUnwrap(menu.items.compactMap(\.submenu).first{$0.title=="显示"})
         XCTAssertEqual(view.items.first{$0.title=="搜索音乐"}?.keyEquivalent,"1")
         XCTAssertEqual(view.items.first{$0.title=="下载管理"}?.keyEquivalent,"2")
+        XCTAssertEqual(menu.items.first?.submenu?.items.first?.title, "关于澄闻")
+        let help = try XCTUnwrap(menu.item(withTitle: "帮助")?.submenu)
+        XCTAssertEqual(help.items.prefix(2).map(\.title), ["检查更新…", "检查依赖…"])
+        XCTAssertTrue(try XCTUnwrap(help.item(withTitle: "查看新版本")).isHidden)
+        for item in help.items { XCTAssertTrue(item.target === owner) }
+    }
+
+    @MainActor func testHelpDependencyActionReusesEnvironmentPanelAndKeepsSelection() async throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent("chengwen-help-" + UUID().uuidString)
+        let checked = expectation(description: "Dependency action checks the existing engine once")
+        checked.assertForOverFulfill = true
+        let model = AppModel(storeURL: root, engine: BackendClient { operation, _, _ in
+            XCTAssertEqual(operation, "health")
+            checked.fulfill()
+            return ["items": [["key": "ffmpeg", "state": "missing", "required": true]]]
+        })
+        let (window, host) = mount(NativeRootView().environmentObject(model), width: 1080, height: 740)
+        let owner = ApplicationDelegate()
+        owner.window = window; owner.model = model
+        defer { detach(window); model.shutdown(); try? FileManager.default.removeItem(at: root) }
+        model.selection = ["selected-track"]
+        let item = try XCTUnwrap(owner.buildMenu().item(withTitle: "帮助")?.submenu?.item(withTitle: "检查依赖…"))
+        XCTAssertTrue(owner.validateMenuItem(item))
+        XCTAssertTrue(NSApp.sendAction(try XCTUnwrap(item.action), to: owner, from: item))
+        await settle(host)
+        for _ in 0..<100 where model.isCheckingEnvironment { try await Task.sleep(nanoseconds: 10_000_000) }
+        await fulfillment(of: [checked], timeout: 2)
+        XCTAssertTrue(model.showEnvironment)
+        XCTAssertEqual(model.healthItems.first?.statusText, "未找到")
+        XCTAssertEqual(model.selection, ["selected-track"])
+        model.showEnvironment = false
+    }
+
+    @MainActor func testManualUpdateCoalescesRequestsAndCachesResultWithoutChangingWorkspace() async throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent("chengwen-update-menu-" + UUID().uuidString)
+        let model = model(root, count: 1)
+        model.selection = ["track-0"]
+        model.page = .downloads
+        let (window, host) = mount(Text("合成菜单验收"), width: 500, height: 300)
+        let owner = ApplicationDelegate()
+        owner.window = window; owner.model = model
+        let previousHelp = NSApp.helpMenu
+        let help = try XCTUnwrap(owner.buildMenu().item(withTitle: "帮助")?.submenu)
+        NSApp.helpMenu = help
+        window.orderFront(nil)
+        var calls = 0
+        var finish: CheckedContinuation<ReleaseCheck, Never>?
+        owner.updateLoader = { _ in
+            calls += 1
+            return await withCheckedContinuation { finish = $0 }
+        }
+        defer {
+            if let sheet = window.attachedSheet { window.endSheet(sheet) }
+            finish?.resume(returning: .unavailable)
+            NSApp.helpMenu = previousHelp
+            detach(window); model.shutdown(); try? FileManager.default.removeItem(at: root)
+        }
+        let check = try XCTUnwrap(help.item(withTitle: "检查更新…"))
+        let newer = try XCTUnwrap(help.item(withTitle: "查看新版本"))
+        for _ in 0..<3 { XCTAssertTrue(NSApp.sendAction(try XCTUnwrap(check.action), to: owner, from: check)) }
+        await settle(host)
+        XCTAssertEqual(calls, 1)
+        XCTAssertFalse(owner.validateMenuItem(check))
+        let completion = try XCTUnwrap(finish)
+        finish = nil
+        completion.resume(returning: .available(version: "0.9.7", page: URL(string: "https://github.com/ixiehao/chengwen/releases/tag/v0.9.7")!))
+        await settle(host)
+        XCTAssertFalse(newer.isHidden)
+        XCTAssertTrue(owner.validateMenuItem(newer))
+        let sheet = try XCTUnwrap(window.attachedSheet)
+        window.endSheet(sheet, returnCode: .alertFirstButtonReturn)
+        await settle(host)
+        XCTAssertTrue(owner.validateMenuItem(check))
+        XCTAssertTrue(NSApp.sendAction(try XCTUnwrap(check.action), to: owner, from: check))
+        await settle(host)
+        XCTAssertEqual(calls, 1, "A repeated manual check should reuse the one-minute result")
+        XCTAssertEqual(model.selection, ["track-0"])
+        XCTAssertEqual(model.page, .downloads)
+        XCTAssertNotNil(window.attachedSheet)
     }
     @MainActor func testFocusedIntegerEditingCommitsBoundsAndStepperSurvivesLosingFocus()async throws {
         var value=10

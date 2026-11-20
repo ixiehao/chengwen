@@ -2,6 +2,12 @@
 
 完整验证入口为 `python3 scripts/validate.py`，详细环境见[开发文档](DEVELOPMENT.md)。验证覆盖公开源码与许可证、宿主工具故障注入、Swift 逻辑和原生窗口、双架构 Release 编译，以及导出源码在独立路径下重新编译。双架构安装包验证使用[打包入口](PACKAGING.md)。
 
+## 0.9.6 build 908 菜单与更新
+
+2026-11-20，本机 257 项 Swift 检查零失败，其中 2 项因跨卷或 ExFAT 条件不适用而跳过。41 项宿主脚本检查通过。新增用例验证原生帮助菜单、依赖面板复用、重复更新请求合并、结果缓存、工作区保留、正式版本比较、预发布排除、离线和限流，以及发布页和双架构安装包链接所属仓库。
+
+在线查询现有 `v0.9.5-preview.1` 得到「暂无正式版本」。已发布的 0.9.5 没有检查更新菜单，新版发现回归使用 0.9.5 作为已安装版本输入。正式分发的签名、公证和实机结果以发布记录为准。
+
 ## 0.9.5 build 907 安装包
 
 发布源码提交为 `a0e68ffdfd16c98c611e4cf376239f7fe5bf9c9e`，该提交的 GitHub Actions 验证通过。Apple Silicon 版在本机原生运行，Intel 版通过 Rosetta 运行。两个 DMG 均验证了挂载、复制后启动、原生界面、WebKit 合成连接和五种本地音频格式。默认 Gatekeeper、macOS Monterey 12.7.6 和实体 Intel Mac 的安装验收待完成。[CI 记录](https://github.com/ixiehao/chengwen/actions/runs/43213441674) · [安装包与校验文件](https://github.com/ixiehao/chengwen/releases/tag/v0.9.5-preview.1)
